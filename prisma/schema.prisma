@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  engineType = "library"
 }
 
 datasource db {
@@ -7,27 +8,267 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Tenant {
-  id        String   @id @default(uuid())
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  users     User[]
-
-  @@map("tenants")
-}
-
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  name      String?
-  
-  tenantId  String
-  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  id                String    @id @default(uuid())
+  name              String?
+  email             String    @unique
+  mobile            String?
+  otp               String?
+  otp_expires_at    DateTime?
+  username          String?
+  email_verified_at DateTime?
+  password          String?
+  remember_token    String?
+  token_expires_at  DateTime?
+  team_id           String?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  ownedBoxes Box[]     @relation("BoxSuperAdmin")
+  boxUsers   BoxUser[]
+  userRoles  RoleUser[]
 
   @@map("users")
-  @@index([tenantId])
+}
+
+model Box {
+  id                            String    @id @default(uuid())
+  superadmin_id                 String
+  superadmin                    User      @relation("BoxSuperAdmin", fields: [superadmin_id], references: [id])
+  name                          String
+  slug                          String?   @unique
+  domain                        String?
+  title                         String?
+  short_title                   String?
+  logo                          String?
+  ip_address                    String?
+  status                        String?   @default("active") // Assuming string due to lack of enum info
+  phone                         String?
+  mobile                        String?
+  address                       String?
+  contact_name                  String?
+  pincode                       String?
+  industry                      String?
+  country_id                    String?
+  state_id                      String?
+  city_id                       String?
+  daily_reminder_time           String?
+  reminder_before               Int?
+  last_reminder_checked         DateTime?
+  lead_required_field           String?   @db.Text
+  working_days                  String?   @db.Text
+  day_start_time                String?
+  day_end_time                  String?
+  currency_code                 String?
+  currency_symbol               String?
+  leave_credit_mode             String?
+  attendace_module_date         DateTime?
+  attendace_module_from_date    DateTime?
+  attendace_module_to_date      DateTime?
+  leave_credit_time             String?
+  start_day_of_every_month      Int?
+  last_day_of_every_month       Int?
+  leave_credit_selected_days    String?
+  round_robin                   Boolean?  @default(false)
+  sms_enable                    Boolean?  @default(false)
+  sms_key                       String?
+  sms_contacts                  String?
+  sms_senderid                  String?
+  assigned_sms                  Boolean?
+  assigned_sms_text             String?   @db.Text
+  round_robin_users             String?   @db.Text
+  dynamic_employee_id           Boolean?
+  change_dynamic_prefix         String?
+  custom_employee_id            String?
+  params                        String?   @db.Text
+  can_use_admin_mail            Boolean?
+  admin_mail_users              String?   @db.Text
+  start_date                    DateTime?
+  end_date                      DateTime?
+  notification                  Boolean?
+  bulk_lead_assignment          Boolean?
+  lead_assignment               Boolean?
+  change_lead_assigned_if_admin Boolean?
+  change_lead_status_if_admin   Boolean?
+  change_lead_source_if_admin   Boolean?
+  activity_reminder             Boolean?
+  allow_duplicate_leads         Boolean?
+  whatsapp_enable               Boolean?
+  whatsapp_business_id          String?
+  whatsapp_phone_id             String?
+  whatsapp_token                String?
+  auto_task_close               Boolean?
+  auto_task_close_days          Int?
+  facebook_api_params           String?   @db.Text
+  company_email                 String?
+  company_phone                 String?
+  fax_number                    String?
+  company_logo                  String?
+  relaxation_time               Int?
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  // Relations
+  country  Country?  @relation(fields: [country_id], references: [id])
+  state    State?    @relation(fields: [state_id], references: [id])
+  city     City?     @relation(fields: [city_id], references: [id])
+  boxUsers BoxUser[]
+
+  @@map("boxes")
+}
+
+model BoxUser {
+  id                                 String    @id @default(uuid())
+  box_id                             String
+  box                                Box       @relation(fields: [box_id], references: [id])
+  user_id                            String
+  user                               User      @relation(fields: [user_id], references: [id])
+  added_by                           String?
+  email_connected                    Boolean?
+  email_type                         String?
+  email_incoming_user                String?
+  email_incoming_password            String?
+  email_outgoing_user                String?
+  email_outgoing_password            String?
+  email_same_user                    Boolean?
+  email_incoming                     String?
+  email_incoming_port                String?
+  email_outgoing                     String?
+  email_outgoing_port                String?
+  email_allow_non_secure_certificate Boolean?
+  encryption                         String?
+  email_token                        String?
+  email_refresh_token                String?
+  allowed_ips                        String?   @db.Text
+  signature                          String?   @db.Text
+  exlude_ip_restriction              Boolean?
+  auto_responder                     Boolean?
+  auto_responder_text                String?   @db.Text
+  phone                              String?
+  pf_no                              String?
+  esi_no                             String?
+  resignation_date                   DateTime?
+  working_days                       String?
+  day_start_time                     String?
+  day_end_time                       String?
+  last_lead                          DateTime?
+  exclude_round_robin                Boolean?
+  user_box_timing                    String?   @db.Text
+  gmail_app                          Boolean?
+  status                             String?
+  auto_responser_subject             String?
+  error_log                          String?   @db.Text
+  auto_responder_attachments         String?   @db.Text
+  first_name                         String?
+  last_name                          String?
+  username                           String?
+  designation                        String?
+  reporting_manager_id               String?
+  can_login_anytime                  Boolean?
+  report_office                      String?
+  about                              String?   @db.Text
+  company                            String?
+  pan_number                         String?
+  employee_id                        String?
+  staff_role                         String?
+  joining_date                       DateTime?
+  marriage_date                      DateTime?
+  department                         String?
+  shift_id                           String?
+  work_mode_id                       String?
+  working_web_days                   String?
+  profile_image                      String?
+  assign_tour                        Boolean?
+  assign_customer                    Boolean?
+  gender                             String?
+  birthday                           DateTime?
+  address                            String?
+  passport_no                        String?
+  profile_image_path                 String?
+  passport_exp_date                  DateTime?
+  nationality                        String?
+  religion                           String?
+  marital_status                     String?
+  Employment_of_spouse               String?
+  no_of_children                     Int?
+  relaxation_time                    Int?
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("box_users")
+}
+
+model Country {
+  id           String   @id @default(uuid())
+  code         String?
+  dialing_code String?
+  name         String
+  status       String?  @default("active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  boxes        Box[]
+  states       State[]
+
+  @@map("countries")
+}
+
+model State {
+  id         String   @id @default(uuid())
+  country_id String
+  country    Country  @relation(fields: [country_id], references: [id])
+  name       String
+  status     String?  @default("active")
+  code       String?
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  boxes      Box[]
+  cities     City[]
+
+  @@map("states")
+}
+
+model City {
+  id        String   @id @default(uuid())
+  state_id  String
+  state     State    @relation(fields: [state_id], references: [id])
+  name      String
+  status    String?  @default("active")
+  lat       String?
+  lng       String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  boxes     Box[]
+
+  @@map("cities")
+}
+
+model Role {
+  id          String     @id @default(uuid())
+  name        String     @unique
+  description String?
+  status      String?    @default("active")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  userRoles   RoleUser[]
+
+  @@map("roles")
+}
+
+model RoleUser {
+  id        String   @id @default(uuid())
+  user_id   String
+  role_id   String
+  user      User     @relation(fields: [user_id], references: [id])
+  role      Role     @relation(fields: [role_id], references: [id])
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("role_user")
 }

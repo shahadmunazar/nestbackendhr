@@ -5,7 +5,7 @@ import { ClsService } from 'nestjs-cls';
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
     constructor(private readonly cls: ClsService) {
-        super();
+        super({});
     }
 
     async onModuleInit() {
@@ -27,11 +27,16 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
                     async $allOperations({ model, operation, args, query }) {
                         const tenantId = this.cls.get('tenantId');
 
-                        // List of models that belong to a tenant
-                        // In a real app, you might reflect this from the Prisma DMMF
-                        const tenantModels = ['User'];
+                        // Define models and their tenant field names
+                        const tenantConfig = {
+                            'User': 'team_id',
+                            'BoxUser': 'box_id',
+                            // Add other tenant-scoped models here
+                        };
 
-                        if (tenantId && tenantModels.includes(model)) {
+                        if (tenantId && Object.keys(tenantConfig).includes(model)) {
+                            const tenantField = tenantConfig[model];
+
                             // Handle 'where' clause for filtering
                             if (
                                 operation === 'findUnique' ||
@@ -41,19 +46,19 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
                                 operation === 'aggregate' ||
                                 operation === 'groupBy'
                             ) {
-                                args.where = { ...args.where, tenantId };
+                                args.where = { ...args.where, [tenantField]: tenantId };
                             }
 
                             // Handle 'data' on create to automatically inject tenantId
                             if (operation === 'create') {
-                                if (!args.data) args.data = {};
-                                (args.data as any).tenantId = tenantId;
+                                if (!args.data) args.data = {} as any;
+                                (args.data as any)[tenantField] = tenantId;
                             }
 
                             if (operation === 'createMany') {
                                 if (args.data && Array.isArray(args.data)) {
                                     args.data.forEach((item: any) => {
-                                        item.tenantId = tenantId;
+                                        item[tenantField] = tenantId;
                                     });
                                 }
                             }

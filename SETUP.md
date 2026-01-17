@@ -21,14 +21,14 @@ DATABASE_URL="mysql://root:password@localhost:3306/nest_hrmanagemnet_db"
 ### 3. Database Migration
 Initialize the database schema.
 ```bash
-# Create the first migration and apply it
-npx prisma migrate dev --name init
+# Since npx might struggle on your system, use the custom script added:
+npm run prisma:migrate
 ```
 
 ### 4. Generate Client
 Regenerate the Prisma Client to ensure types are correct.
 ```bash
-npx prisma generate
+npm run prisma:generate
 ```
 
 ### 5. Run the Application
