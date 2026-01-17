@@ -8,6 +8,21 @@ const prisma = new PrismaClient();
 async function main() {
     console.log('Seeding database...');
 
+
+    // Seed Roles
+    const roles = ['admin', 'superadmin', 'employee', 'client'];
+    console.log('Seeding Roles...');
+    for (const roleName of roles) {
+        await prisma.role.upsert({
+            where: { name: roleName },
+            update: {},
+            create: {
+                name: roleName,
+                status: 'active',
+            },
+        });
+    }
+
     // Paths to JSON files
     const countriesPath = path.join(__dirname, '../src/jsondata/countries.json');
     const statesPath = path.join(__dirname, '../src/jsondata/states.json');

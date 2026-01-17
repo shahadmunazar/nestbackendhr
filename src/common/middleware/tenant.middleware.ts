@@ -4,10 +4,18 @@ import { ClsService } from 'nestjs-cls';
 
 @Injectable()
 export class TenantMiddleware implements NestMiddleware {
-  constructor(private readonly cls: ClsService) {}
+  constructor(private readonly cls: ClsService) { }
 
   use(req: Request, res: Response, next: NextFunction) {
     const tenantId = req.headers['x-tenant-id'];
+    const requestUrl = req.originalUrl || req.url;
+
+    if (requestUrl.startsWith('/auth') || requestUrl.startsWith('/locations')) {
+      if (tenantId) {
+        this.cls.set('tenantId', tenantId);
+      }
+      return next();
+    }
 
     if (!tenantId) {
       // In enterprise saas, you might want to throw or just allow public access.
